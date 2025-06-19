@@ -1,10 +1,11 @@
 from kafka import KafkaProducer
 import json
 import time
-
-def simple_producer():
+import os
+def simple_producer():    
+    bootstrap_servers = os.getenv("BOOTSTRAP_SERVERS", "localhost:9092")
     producer = KafkaProducer(
-        bootstrap_servers=['localhost:9092'],
+        bootstrap_servers=[bootstrap_servers],
         value_serializer=lambda v: json.dumps(v).encode('utf-8')
     )
     

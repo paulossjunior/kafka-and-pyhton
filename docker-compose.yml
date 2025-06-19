@@ -49,6 +49,28 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
 
+  consumer:
+    build:
+      context: .
+      dockerfile: consumer.Dockerfile
+    container_name: consumer
+    depends_on:
+      - kafka
+    environment:
+      - BOOTSTRAP_SERVERS=kafka:29092
+    restart: on-failure
+
+  producer:
+    build:
+      context: .
+      dockerfile: producer.Dockerfile
+    container_name: producer
+    depends_on:
+      - kafka
+    environment:
+      - BOOTSTRAP_SERVERS=kafka:29092
+    restart: on-failure
+
 volumes:
   zookeeper-data:
   zookeeper-logs:
