@@ -5,11 +5,6 @@ PYTHON := python3
 PIP := pip3
 DOCKER_COMPOSE := docker-compose
 
-TOPIC := meu-topico
-PARTITIONS := 2
-REPLICATION_FACTOR := 1
-BOOTSTRAP := kafka:29092
-
 # Cores para output
 COLOR_GREEN := \033[32m
 COLOR_YELLOW := \033[33m
@@ -35,6 +30,10 @@ install: ## Instala dependências Python localmente
 # =====================================
 # Kafka + Docker Compose
 # =====================================
+build:
+	@$(call print-yellow, building ...)
+	$(DOCKER_COMPOSE) build
+	@$(call print-green, Compilados)	
 
 up: ## Sobe Kafka, UI, Consumer e Producer
 	@$(call print-yellow, Subindo Kafka, UI, Consumer e Producer...)
@@ -49,25 +48,6 @@ down: ## Para todos os containers
 
 logs: ## Mostra os logs dos containers
 	@$(DOCKER_COMPOSE) logs -f
-
-# =====================================
-# Kafka Tópicos
-# =====================================
-
-create-topic: ## Cria um tópico no Kafka
-	@$(call print-yellow, Criando tópico '$(TOPIC)' com $(PARTITIONS) partições...)
-	docker exec kafka kafka-topics --create --if-not-exists \
-		--topic $(TOPIC) \
-		--bootstrap-server $(BOOTSTRAP) \
-		--partitions $(PARTITIONS) \
-		--replication-factor $(REPLICATION_FACTOR)
-	@$(call print-green, Tópico '$(TOPIC)' criado com sucesso!)
-
-list-topics: ## Lista tópicos no Kafka
-	docker exec kafka kafka-topics --list --bootstrap-server $(BOOTSTRAP)
-
-describe-topic: ## Descreve um tópico
-	docker exec kafka kafka-topics --describe --topic $(TOPIC) --bootstrap-server $(BOOTSTRAP)
 
 # =====================================
 # Kafka Apps via Docker (Execução única)
@@ -94,28 +74,6 @@ down-apps: ## Para apenas Consumer e Producer
 	@$(call print-yellow, Parando Consumer e Producer...)
 	$(DOCKER_COMPOSE) stop consumer producer
 	@$(call print-green, Consumer e Producer foram parados!)
-
-# =====================================
-# Consumidores Dinâmicos
-# =====================================
-
-run-consumers: ## Sobe N consumidores dinamicamente. Use CONSUMERS=N
-	@if [ -z "$(CONSUMERS)" ]; then \
-		$(call print-red, "Erro: Informe a quantidade usando CONSUMERS=N"); \
-		exit 1; \
-	fi; \
-	for i in $$(seq 1 $(CONSUMERS)); do \
-		$(call print-yellow, "Subindo consumer-$$i..."); \
-		docker-compose run -d --name consumer-$$i -e GROUP_ID=grupo-dinamico docker_consumer; \
-	done; \
-	$(call print-green, "$(CONSUMERS) consumidores iniciados!")
-
-stop-consumers: ## Para todos os consumers dinâmicos
-	@for id in $$(docker ps --filter "name=consumer-" --format "{{.Names}}"); do \
-		$(call print-yellow, "Parando $$id..."); \
-		docker stop $$id && docker rm $$id; \
-	done; \
-	$(call print-green, Todos os consumidores dinâmicos foram parados!)
 
 # =====================================
 # Desenvolvimento local (Python sem Docker)

@@ -346,3 +346,5 @@ docker stats
 - Use `consumer groups` para escalabilidade
 - Implemente tratamento de erros robusto
 
+
+
